@@ -1,0 +1,12 @@
+---
+
+- name: Update repositories cache and install htop, screen, open-vm-tools package
+  become: yes
+  apt:
+    name:
+      - htop
+      - screen
+      - open-vm-tools
+    state : present
+    update_cache: yes
+    cache_valid_time: 3600

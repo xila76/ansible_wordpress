@@ -1,0 +1,2 @@
+[mon_groupe]
+monserveur ansible_host=192.168.63.130 ansible_connection=ssh cms=wordpress host_name=blog.risr19.fr ansible_become_method=su ansible_become_password=toor
