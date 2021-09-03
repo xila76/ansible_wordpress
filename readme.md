@@ -1,5 +1,9 @@
 # Playbook ansible pour déployer Wordpress
 
-Test nouveau commit
+## Utilisation
+
+Lancer le Playbook
+
+  ansible-playbook -i inventory playbook.yml
 
 By Julien T.
