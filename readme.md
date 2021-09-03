@@ -4,6 +4,6 @@
 
 Lancer le Playbook
 
-  ansible-playbook -i inventory playbook.yml
+    ansible-playbook -i inventory playbook.yml
 
 By Julien T.
