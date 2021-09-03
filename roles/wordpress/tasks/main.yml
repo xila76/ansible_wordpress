@@ -33,7 +33,16 @@
     dest: /etc/apache2/sites-available/{{ host_name }}.conf
   when: wordpress_setup.stat.exists == false
 
-# - name: Copie du du template de wp-config.php
+- name: Copie du template de wp-config.php
+  become: yes
+  template:
+    src: wp-config.j2
+    dest: "/var/www/{{ host_name }}/wp-config.php"
+    mode: 0755
+    group: www-data
+    owner: www-data
+  when: wordpress_setup.stat.exists == false
+
 # - name: Generation des clés
 # - name: Ecriture des clés
 - name: Suppression du vhost par défaut
@@ -46,19 +55,70 @@
   file:
     state: absent
     path: /var/www/html
-# - name: Installation dépendances mysql
-# - name: Création base de donnée
-# - name: Activation ré-écriture d'URL
+
+- name: Installation dépendances mysql
+  become: yes
+  apt:
+    name: python3-mysqldb
+    state: present
+
+- name: Création base de donnée
+  become: yes
+  mysql_db:
+    name: "{{ db_name }}"
+
+- name: Création utilisateur mysql
+  become: yes
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "*.*:ALL"
+    host: "{{ db_host }}"
+
+- name: Activation ré-écriture d'URL
+  become: yes
+  apache2_module:
+    state: present
+    name: rewrite
+
+- name: Activation proxy_fcgi
+  become: yes
+  apache2_module:
+    state: present
+    name: proxy_fcgi
+
 - name: Activation du vhost
   become: yes
   file:
     state: link
     src: /etc/apache2/sites-available/{{ host_name }}.conf
     dest: /etc/apache2/sites-enabled/{{ host_name }}.conf
-# - name: Installation wp-cli
-# - name: Renommage wp-cli
-# - name: Changement propriétaire
-# - name: Installation de wordpress avec wp-cli
+
+- name: Trouver dernière version de wp-cli
+  uri:
+    url: https://api.github.com/repos/wp-cli/wp-cli/releases/latest
+    return_content: true
+  register: json_reponse_version_wpcli
+
+- name: Installation wp-cli
+  become: yes
+  get_url:
+    url: "{{ json_reponse_version_wpcli.json.assets.0.browser_download_url }}"
+    dest: /usr/local/bin/wp-cli
+    owner: www-data
+    group: www-data
+    mode: a+x
+
+- name: Installation de wordpress avec wp-cli
+  become: yes
+  become_method: sudo
+  become_user: www-data
+  command: "wp core install --url={{ host_name}} --title={{ host_name }} --admin_user=admin --admin_password=admin --admin_email=toutainj@gmail.com"
+  args:
+    chdir: "/var/www/{{ host_name}}/"
+    
+# - name: Redémarrage apache2
+
 - name: Installation terminé protection de l'installation
   copy:
     content: "Ce site web {{ host_name }} a été installé par ansible si vous supprimez ce fichier il sera redéployé au prochain lancement du playbook"

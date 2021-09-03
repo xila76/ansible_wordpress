@@ -6,6 +6,7 @@
     name:
       - php{{php_version}}
       - php{{php_version}}-fpm
+      - php{{php_version}}-mysql
     state : present
 
 - name: Démarrer le service php{{php_version}}-fpm
