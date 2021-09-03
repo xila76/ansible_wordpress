@@ -2,7 +2,11 @@
 
 ## Utilisation
 
-Lancer le Playbook
+### Préparer l'inventaire
+
+    cp inventory{.dist,}
+
+### Lancer le Playbook
 
     ansible-playbook -i inventory playbook.yml
 
