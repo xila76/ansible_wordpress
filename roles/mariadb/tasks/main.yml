@@ -5,3 +5,10 @@
   apt:
     name: mariadb-server
     state : present
+
+- name: Démarrer le service mariadb-server
+  become: yes
+  service:
+    name: mariadb
+    state: started
+    enabled: true

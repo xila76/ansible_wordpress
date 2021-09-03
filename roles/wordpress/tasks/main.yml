@@ -1,0 +1,66 @@
+---
+- name: Tester si une précédente installation existe
+  stat:
+    path: "/var/www.{{ host_name }}/setup.ok"
+  register: wordpress_setup
+
+- name: Création du répertoire de destination
+  become: yes
+  file:
+    path: "/var/www/{{ host_name }}"
+    state: directory
+    mode: 0755
+    group: www-data
+    owner: www-data
+  when: wordpress_setup.stat.exists == false
+
+- name: Téléchargement des sources de Wordpress
+  become: yes
+  unarchive:
+    src: "{{ wp_dl_url }}"
+    dest: "/var/www/{{ host_name }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    mode: 0755
+    group: www-data
+    owner: www-data
+  when: wordpress_setup.stat.exists == false
+
+- name: Copie du template de vhost apache2
+  become: yes
+  template:
+    src: vhost.j2
+    dest: /etc/apache2/sites-available/{{ host_name }}.conf
+  when: wordpress_setup.stat.exists == false
+
+# - name: Copie du du template de wp-config.php
+# - name: Generation des clés
+# - name: Ecriture des clés
+- name: Suppression du vhost par défaut
+  become: yes
+  file:
+    state: absent
+    path: /etc/apache2/sites-enabled/000-default.conf
+- name: Suppression du site web par défaut
+  become: yes
+  file:
+    state: absent
+    path: /var/www/html
+# - name: Installation dépendances mysql
+# - name: Création base de donnée
+# - name: Activation ré-écriture d'URL
+- name: Activation du vhost
+  become: yes
+  file:
+    state: link
+    src: /etc/apache2/sites-available/{{ host_name }}.conf
+    dest: /etc/apache2/sites-enabled/{{ host_name }}.conf
+# - name: Installation wp-cli
+# - name: Renommage wp-cli
+# - name: Changement propriétaire
+# - name: Installation de wordpress avec wp-cli
+- name: Installation terminé protection de l'installation
+  copy:
+    content: "Ce site web {{ host_name }} a été installé par ansible si vous supprimez ce fichier il sera redéployé au prochain lancement du playbook"
+    dest: "/var/www/{{ host_name }}/setup.ok"
+  when: wordpress_setup.stat.exists == false
