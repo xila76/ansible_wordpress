@@ -4,6 +4,9 @@
     path: "/var/www.{{ host_name }}/setup.ok"
   register: wordpress_setup
 
+- debug:
+    msg: "{{ wordpress_setup }}"
+
 - name: Création du répertoire de destination
   become: yes
   file:
@@ -50,6 +53,7 @@
   file:
     state: absent
     path: /etc/apache2/sites-enabled/000-default.conf
+
 - name: Suppression du site web par défaut
   become: yes
   file:
@@ -66,6 +70,7 @@
   become: yes
   mysql_db:
     name: "{{ db_name }}"
+  when: wordpress_setup.stat.exists == false
 
 - name: Création utilisateur mysql
   become: yes
@@ -74,6 +79,7 @@
     password: "{{ db_password }}"
     priv: "*.*:ALL"
     host: "{{ db_host }}"
+  when: wordpress_setup.stat.exists == false
 
 - name: Activation ré-écriture d'URL
   become: yes
@@ -93,6 +99,7 @@
     state: link
     src: /etc/apache2/sites-available/{{ host_name }}.conf
     dest: /etc/apache2/sites-enabled/{{ host_name }}.conf
+  when: wordpress_setup.stat.exists == false
 
 - name: Trouver dernière version de wp-cli
   uri:
@@ -111,15 +118,32 @@
 
 - name: Installation de wordpress avec wp-cli
   become: yes
-  become_method: sudo
-  become_user: www-data
-  command: "wp core install --url={{ host_name}} --title={{ host_name }} --admin_user=admin --admin_password=admin --admin_email=toutainj@gmail.com"
+  # become_method: sudo
+  # become_user: www-data
+  command: "sudo -u www-data wp-cli core install --url={{ host_name}} --title={{ host_name }} --admin_user=admin --admin_password=admin --admin_email=toutainj@gmail.com"
   args:
     chdir: "/var/www/{{ host_name}}/"
-    
-# - name: Redémarrage apache2
+  when: wordpress_setup.stat.exists == false
+
+- name: Changement propriétaire sur le dossier du site
+  become: yes
+  file:
+    path: "/var/www/{{ host_name }}"
+    state: directory
+    mode: 0755
+    group: www-data
+    owner: www-data
+  when: wordpress_setup.stat.exists == false
+
+- name: Redémarrage apache2
+  become: yes
+  service:
+    name: apache2
+    state: restarted
+  when: wordpress_setup.stat.exists == false
 
 - name: Installation terminé protection de l'installation
+  become: yes
   copy:
     content: "Ce site web {{ host_name }} a été installé par ansible si vous supprimez ce fichier il sera redéployé au prochain lancement du playbook"
     dest: "/var/www/{{ host_name }}/setup.ok"
