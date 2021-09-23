@@ -1,2 +1,2 @@
 [mon_groupe]
-monserveur ansible_host=192.168.0.100 ansible_connection=ssh cms=wordpress host_name=blog.local.fr ansible_user=user ansible_password=resu ansible_become_method=su ansible_become_password=toor
+monserveur ansible_host=192.168.0.100 ansible_connection=ssh cms=wordpress gitlab_hostname=gitlab.local.fr host_name=blog.local.fr ansible_user=user ansible_password=resu ansible_become_method=su ansible_become_password=toor ansible_python_interpreter=/usr/bin/python3

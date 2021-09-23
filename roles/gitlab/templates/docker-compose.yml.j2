@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+# docker run --detach     --hostname gitlab.adgroupe.priv     --publish 8443:443 --publish 8080:80 --publish 8022:22     --name gitlab     --restart always     -v /home/ubuntu/docker/gitlab/config/:/etc/gitlab     -v /home/ubuntu/docker/gitlab/logs/:/var/log/gitlab     -v /home/ubuntu/docker/gitlab/data/:/var/opt/gitlab     gitlab/gitlab-ce:latest
+   gitlab:
+       image: gitlab/gitlab-ce:latest
+       container_name: gitlab
+       restart: always
+       hostname: {{ gitlab_hostname }}
+       environment:
+        GITLAB_OMNIBUS_CONFIG: |
+          gitlab_rails['initial_root_password'] = 'adminadmin'
+       ports:
+         - '443:443'
+         - '8080:80'
+         - '2222:22'
+       volumes:
+         - /home/user/docker/gitlab/config/:/etc/gitlab
+         - /home/user/docker/gitlab/logs/:/var/log/gitlab
+         - /home/user/docker/gitlab/data/:/var/opt/gitlab

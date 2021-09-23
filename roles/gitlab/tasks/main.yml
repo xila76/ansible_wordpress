@@ -1,0 +1,27 @@
+---
+- name: Création du répertoire de destination
+  # become: yes
+  file:
+    path: "/home/user/docker/gitlab"
+    state: directory
+    mode: 0755
+
+- name: Installation module python pour gérer docker
+  become: yes
+  pip:
+    name: docker-compose
+- name: Installation module python pour gérer docker
+  become: yes
+  pip:
+    name: docker
+
+- name: Copie du template docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "/home/user/docker/gitlab/docker-compose.yml"
+
+- name: Déploiement du docker compose
+  docker_compose:
+    project_src: ~/docker/gitlab/
+    files:
+    - docker-compose.yml

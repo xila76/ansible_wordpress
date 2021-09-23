@@ -3,4 +3,4 @@
   hosts: mon_groupe
   roles:
     - role: wordpress
-      # when: cms == "wordpress"
+    - role: gitlab
